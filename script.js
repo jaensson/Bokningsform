@@ -2,7 +2,6 @@
 let form;               // Reference to the form
 let totalElem;          // Reference to total cost
 
-
 // Initializing global variables
 function init() {
     // References to element
@@ -10,90 +9,34 @@ function init() {
     totalElem = document.getElementById("totalCost");
 
     // Event handlers
-    form.addEventListener("change", checkIfFamilyRoom);
-    form.addEventListener("change", updatePrice);
+    eventHandlers();
 
-    // Input for campaign code
-    form.campaigncode.addEventListener("keypress", e => {
-        let value = form.campaigncode.value;                    // Input value campaign code
-        let valid = /[a-zA-Z]{3}-[0-9]{2}-[a-zA-Z][0-9]$/;      // Three letters, -, two digits, -, a letter, a digit
-
-        if(valid.test(value)) {                                 // Validates users input
-            form.campaigncode.style.backgroundColor = "green";
-        } else {
-            form.campaigncode.style.backgroundColor = "red";
-        }
-    });
-
-    // Input for zipcode
-    form.zipcode.addEventListener("keypress", e => {
-        let value = form.zipcode.value;                                                 // Input value zipcode
-        value = value.replace(/[^a-zA-Z0-9 ]/g, "").replace(/[a-zåäöA-ZÅÄÖ ]/g, "");    // Replaces all characters except digits
-        form.zipcode.value = value;
-        let valid = /^[1-9][0-9]{4}$/;                                                  // First 1-9, four digits
-
-        if(valid.test(value)) {                                                         // Validates users input
-            form.zipcode.parentNode.parentNode.childNodes[2].innerText = "";
-        } else {
-            form.zipcode.parentNode.parentNode.childNodes[2].innerText = "Du får endast ha 5 siffor men inte börja på 0";
-        }
-    });
-
-    // Input for telephone number
-    form.telephone.addEventListener("keypress", e => {
-        let value = form.telephone.value;                       // Input value telephone
-        value = value.replace(/[a-zåäöA-ZÅÄÖ]/g, "");           // Replaces all characters except digits
-        form.telephone.value = value;
-        let valid = /^0[0-9]{3}[-/ ]?[0-9]{2,7}$/;              // First 0, Three digits, Either (slash, hyphen or space), Two to Seven digits 
-        
-        if(valid.test(value)) {                                 // Validates users input
-            form.telephone.parentNode.parentNode.childNodes[2].innerText = "";
-            form.telephone.style.backgroundColor = "green";
-        } else {
-            form.telephone.parentNode.parentNode.childNodes[2].innerText = "Du får inte ha några bokstäver och det måste börja på 0";
-            form.telephone.style.backgroundColor = "red";
-        }
-    });
-
-    // Input for mail address
-    form.email.addEventListener("keypress", e => {
-        let value = form.email.value;
-        let valid = /^(?!\.)(\w|-|\.){1,64}(?!\.)@(?!\.)[-.a-zåäö0-9]{4,253}$/;
-        let secondValid = /(\W|^)[\w.\-]{0,25}@(yahoo|hotmail|gmail)\.com(\W|$)/;
-
-        if(valid.test(value)) {
-            form.email.parentNode.parentNode.childNodes[1].innerText = "";
-        } else {
-            form.email.parentNode.parentNode.childNodes[1].innerText = "Skriv in en giltig mejladdress";
-        }
-
-        console.log(value);
-    });
-
-    // Default values for updating input
+    // Default values for updating/disabling input based on the room type, family
     form.city.style.textTransform = "Uppercase";
     form.persons.disabled = true;
-    form.persons.parentNode.style.color = "#999";
+    form.persons.parentNode.style.color = "#999";    
 }
 
 /**
  * Checks if it is a family room
  */
 function checkIfFamilyRoom() {
-    let room;
+    let room;                                                   // Current type of room
+
+    // Gets checked roomType using loop
     for(let i = 0; i < form.roomType.length; i++) {
         if(form.roomType[i].checked) {
-            let value = form.roomType[i].value.split(",");
+            let value = form.roomType[i].value.split(",");      // Separates values by (,) in an array, first index = roomType, second index = cost
             room = value[0];
         }
     }
 
-    if(room === "familjerum") {
+    if(room === "familjerum") {                                 // If room type is familyroom, disable lake view and enable amount amount of people
         form.persons.disabled = false;
         form.persons.parentNode.style.color = "#000";
         form.addition[2].disabled = true;
         form.addition[2].parentNode.style.color = "#999";
-    } else {
+    } else {                                                    // Else enable lake view and disable amount of people
         form.persons.disabled = true;
         form.persons.parentNode.style.color = "#999";
         form.addition[2].disabled = false;
@@ -105,26 +48,27 @@ function checkIfFamilyRoom() {
  * Updates current total price
  */
 function updatePrice() {
-    let room = getPriceValueFromInput(form.roomType);
-    let nights = parseInt(form.nights.value);
-    let extra = getPriceValueFromInput(form.addition);
-    let total = (room + extra) * nights;
+    let room = getPriceValueFromInput(form.roomType);           // Cost of room 
+    let nights = parseInt(form.nights.value);                   // For how many nights
+    let extra = getPriceValueFromInput(form.addition);          // Cost of extra additions
+    let total = (room + extra) * nights;                        // Total cost, (room per night) * nights
 
     totalElem.innerText = total;
 }
 
 /**
- * Get prices from checked inputs
+ * Get costs from checked inputs
  * @param {elementList} 
  * @returns elementValue
  */
 function getPriceValueFromInput(elementList) {
-    let elementValue = 0;
+    let elementValue = 0;                                                   // Total cost of checked elements in elementList
 
+    // Gets checked roomType/addition using loop
     for(let i = 0; i < elementList.length; i++) {
         if(elementList[i].checked && elementList[i].disabled === false) {
-            let value = elementList[i].value.split(",");
-            elementValue += parseInt(value[1]);
+            let value = elementList[i].value.split(",");                    // Separates values by (,) in an array, first index = roomType/addition, second index = cost
+            elementValue += parseInt(value[1]);                             // Adds cost to total
         }
     }
 
